@@ -38,15 +38,15 @@ void validSubmittedFiles(string filename, string *allowedIncludingFiles, int num
 
 int main(int argc, char **argv)
 {
-    if (argc < 2)
-        return 1;
+    // if (argc < 2)
+    //     return 1;
 
-    string allowedH[] = {"main.h"};
-    validSubmittedFiles("SymbolTable.h", allowedH);
+    // string allowedH[] = {"main.h"};
+    // validSubmittedFiles("SymbolTable.h", allowedH);
 
-    string allowedCPP[] = {"SymbolTable.h"};
-    validSubmittedFiles("SymbolTable.cpp", allowedCPP);
-    test(argv[1]);
+    // string allowedCPP[] = {"SymbolTable.h"};
+    // validSubmittedFiles("SymbolTable.cpp", allowedCPP);
+    test("test1.txt");
 
     return 0;
 }
