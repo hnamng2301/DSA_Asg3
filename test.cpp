@@ -3,23 +3,21 @@
 #include <fstream>
 using namespace std;
 
-int changeToKey(string identifier, int scope)
+unsigned long changeToKey(string identifier, int scope)
 {
   string key = "";
   for (int i = 0; i < int(identifier.size()); i++)
   {
+    cout << identifier[i] - 48 << endl;
     key += to_string(identifier[i] - 48);
   }
   key = to_string(scope) + key;
-  return stoi(key);
+  
+  return stoll(key);
 }
 
 int main(){
-  int arr[9] = {12};
-  for (int i = 0; i < 9; i++){
-    cout << arr[i] << endl;
-  }
-  return 0;
+  cout << changeToKey("ppphj", 0) << endl;
 }
 
 // LINEAR <><> / ....  -> Tao hash table 
