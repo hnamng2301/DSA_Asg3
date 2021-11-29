@@ -30,8 +30,20 @@ class SymbolTable
     Symbol** symbolTable;
     int count;
 public:
-    SymbolTable() {
+    SymbolTable() 
+    {
         this->symbolTable = nullptr;
+        this->count = 0;
+    }
+    ~SymbolTable()
+    {
+        for (int i = 0; i <= this->count; i++)
+        {
+            delete symbolTable[i];
+            symbolTable[i] = nullptr;
+        }
+        delete symbolTable;
+        symbolTable = nullptr;
         this->count = 0;
     }
     void initArray(int size);
@@ -41,6 +53,7 @@ public:
     void assign(string, string, int, int, int, int&);
     void call();
     void exitScope(int&, int);
+    void look_up(string, string, int, int, int, int);
     string result(int);
     void printTable(string);
     void run(string filename);

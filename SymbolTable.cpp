@@ -80,11 +80,11 @@ void splitFirstLine(string line, string arg[])
         if (!isNum(arg[1]) || !isNum(arg[2]))
             throw InvalidInstruction(line);
     }
-    else if(arg[0] == "QUADRATIC"){
+    else if(arg[0] == "DOUBLE"){
         if (!isNum(arg[1]) || !isNum(arg[2]))
             throw InvalidInstruction(line);
     }
-    else if(arg[0] == "DOUBLE"){
+    else if(arg[0] == "QUADRATIC"){
         if (!isNum(arg[1]) || !isNum(arg[2]) || !isNum(arg[3]))
             throw InvalidInstruction(line);
     }
@@ -145,29 +145,29 @@ void SymbolTable::insert(string line, string type, int firstConst, int secondCon
     Symbol* symbol = new Symbol(name, num_of_parameters, scope);
     if (type == "LINEAR"){
         int index = hashFunction(symbol->key, size);
-        // cout << "Symbol " << symbol->key << " ";
-        // cout << "Index: "<< index << " " << endl;
+        cout << "Symbol " << symbol->key << " ";
+        cout << "Index: "<< index << " " << endl;
         if (this->count == size - 1){
             throw Overflow(line);
         }
         else{
             while(symbolTable[index] != NULL){
                 if (symbolTable[index] != NULL)
-                    if(symbolTable[index]->key == symbol->key && symbolTable[index]->scope == symbol->scope)
+                    if(symbolTable[index]->identifier == symbol->identifier && symbolTable[index]->scope == symbol->scope)
                         throw Redeclared(line);
                 index += firstConst;
-                numsteps += firstConst;
+                numsteps++;
                 index = index % size;
             }
 
             symbolTable[index] = symbol;
-            cout << numsteps << endl;
-            this->count++;
+            // cout << numsteps << endl;
+            // this->count++;
         }
     }
     else if (type == "QUADRATIC"){
         int index = hashFunction(symbol->key, size);
-        
+        // cout << "Index: " << index << " " << endl;
         if (this->count == size - 1){
             throw Overflow(line);
         }
@@ -175,36 +175,39 @@ void SymbolTable::insert(string line, string type, int firstConst, int secondCon
             int i = 1;
             while(symbolTable[index] != NULL){
                 if (symbolTable[index] != NULL)
-                    if(symbolTable[index]->key == symbol->key && symbolTable[index]->scope == symbol->scope)
+                    if(symbolTable[index]->identifier == symbol->identifier && symbolTable[index]->scope == symbol->scope)
                         throw Redeclared(line);
                 index += firstConst * i + secondConst * i * i;
-                numsteps += firstConst;
+                numsteps++;;
                 index = index % size;
                 i++;
             }
             symbolTable[index] = symbol;
-            this->count++;
+            // this->count++;
         }
     }
     else if (type == "DOUBLE"){
         int index = hashFunction(symbol->key, size);
-        
+        // cout << symbol->key << endl;
         if (this->count == size - 1){
             throw Overflow(line);
         }
         else{
             while(symbolTable[index] != NULL){
                 if (symbolTable[index] != NULL)
-                    if(symbolTable[index]->key == symbol->key && symbolTable[index]->scope == symbol->scope)
+                    if(symbolTable[index]->identifier == symbol->identifier && symbolTable[index]->scope == symbol->scope)
                         throw Redeclared(line);
                 index += firstConst * subHashFunction(symbol->key, size);
-                numsteps += firstConst;
+                numsteps++;
+                // cout << firstConst << endl;
                 index = index % size;
             }
             symbolTable[index] = symbol;
-            this->count++;
+            // this->count++;
         }      
     }
+    cout << numsteps << endl;
+    this->count++;
 }
 
 void SymbolTable::assign(string line, string type, int firstConst, int secondConst, int size , int& scope){
@@ -366,7 +369,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                 break;
             }
                 index += firstConst * i + secondConst * i * i;
-                numsteps += firstConst;
+                numsteps++;
                 index = index % size;
                 i++;
         }
@@ -394,7 +397,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                     break;
                 }
                 index_val += firstConst * i_val + secondConst * i_val * i_val;
-                numsteps += firstConst;
+                numsteps++;
                 index_val = index_val % size;
                 i_val++;
             }
@@ -431,7 +434,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                     break;
                 }
                 index_val += firstConst * i_val + secondConst * i_val * i_val;
-                numsteps += firstConst;
+                numsteps++;
                 index_val = index_val % size;
                 i_val++;
             }
@@ -445,7 +448,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                     break;
                 }
                 index_var += firstConst * i_var + secondConst * i_var * i_var;
-                numsteps += firstConst;
+                numsteps++;
                 index_var = index_var % size;
                 i_var++;
             }
@@ -478,7 +481,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                             break;
                         }
                         index_param += firstConst * i_param + secondConst * i_param * i_param;
-                        numsteps += firstConst;
+                        numsteps++;
                         index_param = index_param % size;
                         i_param++;
                     }
@@ -528,7 +531,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                 break;
             }
             index += firstConst * subHashFunction(idToKey(varToAssign, scope), size);
-            numsteps += firstConst;
+            numsteps++;
             index = index % size;
         }
         if (!isDeclared)
@@ -554,7 +557,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                     break;
                 }
                 index_val += firstConst * subHashFunction(idToKey(valToAssign, scope), size);
-                numsteps += firstConst;
+                numsteps++;
                 index_val = index_val % size;
             }
             if (!valDeclared)
@@ -589,7 +592,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                     break;
                 }
                 index_val += firstConst * subHashFunction(idToKey(valName, scope), size);
-                numsteps += firstConst;
+                numsteps++;
                 index_val = index_val % size;
             }
 
@@ -601,7 +604,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                     break;
                 }
                 index_var += firstConst * subHashFunction(idToKey(varToAssign, scope), size);
-                numsteps += firstConst;
+                numsteps++;
                 index_var = index_var % size;
             }
 
@@ -632,7 +635,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                             break;
                         }
                         index_param += firstConst * subHashFunction(idToKey(param, scope), size);
-                        numsteps += firstConst;
+                        numsteps++;
                         index_param = index_param % size;
                     }
                     if (!paramDeclared) throw Undeclared(line);
@@ -661,6 +664,75 @@ void SymbolTable::exitScope(int& scope, int size){
             symbolTable[i] = nullptr;
         }
     }
+}
+
+void SymbolTable::look_up(string line, string type, int firstConst, int secondConst, int scope, int size){
+    int numsteps = 0;
+    bool isDeclared = false;
+    int posOfName = 0;
+    string word[2] = {"", ""};
+    splitLine(line, word, 2);
+    string name = word[1];
+    
+    for (int i = scope; i >= 0; i--){
+        int index = hashFunction(idToKey(name, i), size);
+        // cout << idToKey(name, i) << endl;
+        // cout << scope << endl;
+        if (type == "LINEAR")
+        {
+            while (symbolTable[index] != NULL)
+            {
+                // cout << symbolTable[index]->identifier << " " << varToAssign << endl;
+                if (symbolTable[index] != NULL && symbolTable[index]->identifier == name)
+                {
+                    isDeclared = true;
+                    posOfName = index;
+                    break;
+                }
+                index += firstConst;
+                numsteps++;
+                index = index % size;
+            }
+        }
+        else if (type == "QUADRATIC")
+        {
+            int j = 1;
+            while (symbolTable[index] != NULL)
+            {
+                // cout << symbolTable[index]->identifier << " " << varToAssign << endl;
+                if (symbolTable[index] != NULL && symbolTable[index]->identifier == name)
+                {
+                    isDeclared = true;
+                    posOfName = index;
+                    break;
+                }
+                index += firstConst * j + secondConst * j * j;
+                numsteps++;
+                index = index % size;
+                j++;
+            }
+        }
+        else if (type == "DOUBLE")
+        {
+            while (symbolTable[index] != NULL)
+            {
+                // cout << symbolTable[index]->identifier << " " << varToAssign << endl;
+                if (symbolTable[index] != NULL && symbolTable[index]->identifier == name)
+                {
+                    isDeclared = true;
+                    posOfName = index;
+                    break;
+                }
+                index += firstConst * subHashFunction(idToKey(name, i), size);
+                numsteps++;
+                index = index % size;
+            }
+        }
+
+        if (isDeclared) break;
+    }
+    if(!isDeclared) throw Undeclared(line);
+    cout << posOfName << endl;
 }
 
 string SymbolTable::result(int size){
@@ -694,7 +766,7 @@ void SymbolTable::run(string filename)
 
     // Check first line
     int firstConst = -1, secondConst = -1;
-    if (hashType[0] != "LINEAR" && hashType[1] != "QUADRIC" && hashType[2] != "DOUBLE")
+    if (hashType[0] != "LINEAR" && hashType[0] != "QUADRATIC" && hashType[0] != "DOUBLE")
         throw InvalidInstruction(firstLine);
     if (hashType[2] != ""){
         if (isNum(hashType[2]))
@@ -740,7 +812,9 @@ void SymbolTable::run(string filename)
             this->exitScope(scope, hashSize);
             scope--;
         }
-        else if (code == "LOOKUP"){}
+        else if (code == "LOOKUP"){
+            this->look_up(line, hashType[0], firstConst, secondConst, scope, hashSize);
+        }
         else if (code == "CALL"){}
         else if (code == "PRINT"){
             this->printTable(this->result(hashSize));
