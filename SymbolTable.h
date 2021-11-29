@@ -39,6 +39,10 @@ public:
     unsigned long subHashFunction(unsigned long long, int);
     void insert(string, string, int, int, int, int&);
     void assign(string, string, int, int, int, int&);
+    void call();
+    void exitScope(int&, int);
+    string result(int);
+    void printTable(string);
     void run(string filename);
 };
 
