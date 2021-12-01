@@ -1,0 +1,3 @@
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E rm -f CMakeFiles\DSA_Asg3.dir/objects.a
+C:\PROGRA~1\MINGW-~1\X86_64~1.0-P\mingw64\bin\ar.exe cr CMakeFiles\DSA_Asg3.dir/objects.a @CMakeFiles\DSA_Asg3.dir\objects1.rsp
+C:\PROGRA~1\MINGW-~1\X86_64~1.0-P\mingw64\bin\X86_64~2.EXE -g -Wl,--whole-archive CMakeFiles\DSA_Asg3.dir/objects.a -Wl,--no-whole-archive -o DSA_Asg3.exe -Wl,--out-implib,libDSA_Asg3.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\DSA_Asg3.dir\linklibs.rsp
