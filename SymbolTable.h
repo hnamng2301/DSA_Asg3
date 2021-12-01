@@ -29,15 +29,17 @@ class SymbolTable
 {
     Symbol** symbolTable;
     int count;
+    int size;
 public:
     SymbolTable() 
     {
         this->symbolTable = nullptr;
         this->count = 0;
+        this->size = 0;
     }
     ~SymbolTable()
     {
-        for (int i = 0; i <= this->count; i++)
+        for (int i = 0; i < this->size; i++)
         {
             delete symbolTable[i];
             symbolTable[i] = nullptr;
@@ -45,13 +47,14 @@ public:
         delete symbolTable;
         symbolTable = nullptr;
         this->count = 0;
+        this->size = 0;
     }
     void initArray(int size);
     unsigned long hashFunction(unsigned long long int, int);
     unsigned long subHashFunction(unsigned long long, int);
     void insert(string, string, int, int, int, int&);
-    void assign(string, string, int, int, int, int&);
-    void call();
+    void assign(string, string, int, int, int, int);
+    void call(string, string, int, int, int, int);
     void exitScope(int&, int);
     void look_up(string, string, int, int, int, int);
     string result(int);

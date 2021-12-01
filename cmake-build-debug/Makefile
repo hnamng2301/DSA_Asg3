@@ -128,30 +128,6 @@ DSA_Asg3/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\DSA_Asg3.dir\build.make CMakeFiles/DSA_Asg3.dir/build
 .PHONY : DSA_Asg3/fast
 
-SymbolTable.obj: SymbolTable.cpp.obj
-.PHONY : SymbolTable.obj
-
-# target to build an object file
-SymbolTable.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\DSA_Asg3.dir\build.make CMakeFiles/DSA_Asg3.dir/SymbolTable.cpp.obj
-.PHONY : SymbolTable.cpp.obj
-
-SymbolTable.i: SymbolTable.cpp.i
-.PHONY : SymbolTable.i
-
-# target to preprocess a source file
-SymbolTable.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\DSA_Asg3.dir\build.make CMakeFiles/DSA_Asg3.dir/SymbolTable.cpp.i
-.PHONY : SymbolTable.cpp.i
-
-SymbolTable.s: SymbolTable.cpp.s
-.PHONY : SymbolTable.s
-
-# target to generate assembly for a file
-SymbolTable.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\DSA_Asg3.dir\build.make CMakeFiles/DSA_Asg3.dir/SymbolTable.cpp.s
-.PHONY : SymbolTable.cpp.s
-
 main.obj: main.cpp.obj
 .PHONY : main.obj
 
@@ -176,30 +152,6 @@ main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\DSA_Asg3.dir\build.make CMakeFiles/DSA_Asg3.dir/main.cpp.s
 .PHONY : main.cpp.s
 
-test.obj: test.cpp.obj
-.PHONY : test.obj
-
-# target to build an object file
-test.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\DSA_Asg3.dir\build.make CMakeFiles/DSA_Asg3.dir/test.cpp.obj
-.PHONY : test.cpp.obj
-
-test.i: test.cpp.i
-.PHONY : test.i
-
-# target to preprocess a source file
-test.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\DSA_Asg3.dir\build.make CMakeFiles/DSA_Asg3.dir/test.cpp.i
-.PHONY : test.cpp.i
-
-test.s: test.cpp.s
-.PHONY : test.s
-
-# target to generate assembly for a file
-test.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\DSA_Asg3.dir\build.make CMakeFiles/DSA_Asg3.dir/test.cpp.s
-.PHONY : test.cpp.s
-
 # Help Target
 help:
 	@echo The following are some of the valid targets for this Makefile:
@@ -209,15 +161,9 @@ help:
 	@echo ... edit_cache
 	@echo ... rebuild_cache
 	@echo ... DSA_Asg3
-	@echo ... SymbolTable.obj
-	@echo ... SymbolTable.i
-	@echo ... SymbolTable.s
 	@echo ... main.obj
 	@echo ... main.i
 	@echo ... main.s
-	@echo ... test.obj
-	@echo ... test.i
-	@echo ... test.s
 .PHONY : help
 
 

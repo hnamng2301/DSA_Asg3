@@ -82,22 +82,10 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/SymbolTable.cpp">
-			<Option target="DSA_Asg3"/>
-		</Unit>
-		<Unit filename="D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/SymbolTable.h">
-			<Option target="DSA_Asg3"/>
-		</Unit>
-		<Unit filename="D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/error.h">
-			<Option target="DSA_Asg3"/>
-		</Unit>
 		<Unit filename="D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/main.cpp">
 			<Option target="DSA_Asg3"/>
 		</Unit>
 		<Unit filename="D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/main.h">
-			<Option target="DSA_Asg3"/>
-		</Unit>
-		<Unit filename="D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/test.cpp">
 			<Option target="DSA_Asg3"/>
 		</Unit>
 		<Unit filename="D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/CMakeLists.txt">

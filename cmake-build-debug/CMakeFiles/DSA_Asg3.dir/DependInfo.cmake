@@ -8,9 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/SymbolTable.cpp" "D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/cmake-build-debug/CMakeFiles/DSA_Asg3.dir/SymbolTable.cpp.obj"
   "D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/main.cpp" "D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/cmake-build-debug/CMakeFiles/DSA_Asg3.dir/main.cpp.obj"
-  "D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/test.cpp" "D:/HCMUT/3rd year - HK301/DSA/Assignment_3/DSA_Asg3/cmake-build-debug/CMakeFiles/DSA_Asg3.dir/test.cpp.obj"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
