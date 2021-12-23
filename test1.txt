@@ -1,6 +1,17 @@
+<<<<<<< Updated upstream
 DOUBLE 818 855
 INSERT qrcaof
 LOOKUP qrcaof
 CALL qrcaof()
 LOOKUP qrcaof
 BEGIN
+=======
+LINEAR 143 580
+LOOKUP tt5w
+LOOKUP lXKncX
+ASSIGN kf0 b
+BEGIN
+ASSIGN nJhq fiXcpR
+ASSIGN acG6B rz
+END
+>>>>>>> Stashed changes

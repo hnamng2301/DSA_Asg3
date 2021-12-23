@@ -3,11 +3,12 @@
 bool validID(string lineName)
 {
     // Kiem tra ID hop le
-    if (lineName[0] >= 'a' && lineName[0] <= 'z')
-    { // Phai bat dau bang ky tu thuong
+    if (lineName[0] >= 'a' && lineName[0] <= 'z')   // Phai bat dau bang ky tu thuong
+    { 
         for (unsigned int i = 0; i < lineName.size(); i++)
         {
-            if ((lineName[i] >= 'A' && lineName[i] <= 'Z') || (lineName[i] >= 'a' && lineName[i] <= 'z') || (lineName[i] >= '0' && lineName[i] <= '9') || lineName[i] == '_')
+            if ((lineName[i] >= 'A' && lineName[i] <= 'Z') || (lineName[i] >= 'a' && lineName[i] <= 'z') 
+                || (lineName[i] >= '0' && lineName[i] <= '9') || lineName[i] == '_')
                 continue;
             else
                 return false;
@@ -45,7 +46,8 @@ bool isString(string lineValue)
 }
 bool checkAction(string action)
 {
-    if (action != "LINEAR" && action != "INSERT" && action != "ASSIGN" && action != "PRINT" && action != "BEGIN" && action != "END" && action != "CALL" && action != "LOOKUP")
+    if (action != "INSERT" && action != "ASSIGN" && action != "PRINT" && 
+        action != "BEGIN" && action != "END" && action != "CALL" && action != "LOOKUP")
         return false;
     return true;
 }
@@ -115,12 +117,12 @@ void SymbolTable::initArray(int size)
     }
 }
 
-unsigned long SymbolTable::hashFunction(unsigned long long key, int size)
+unsigned long long SymbolTable::hashFunction(unsigned long long key, int size)
 {
     return key % size;
 }
 
-unsigned long SymbolTable::subHashFunction(unsigned long long key, int size)
+unsigned long long SymbolTable::subHashFunction(unsigned long long key, int size)
 {
     return 1 + (key % (size - 2));
 }
@@ -130,7 +132,8 @@ void SymbolTable::insert(string line, string type, int firstConst, int secondCon
     string word[3] = {"", "", ""};
     splitLine(line, word, 3);
 
-    if ((line != word[0] + ' ' + word[1] + ' ' + word[2] && word[2] != "") || (line != word[0] + ' ' + word[1] && word[2] == ""))
+    if ((line != word[0] + ' ' + word[1] + ' ' + word[2] && word[2] != "") || 
+        (line != word[0] + ' ' + word[1] && word[2] == ""))
         throw InvalidInstruction(line);
 
     int numsteps = 0;
@@ -141,7 +144,7 @@ void SymbolTable::insert(string line, string type, int firstConst, int secondCon
     // If insert a function type variable in scope != 0
     if (scope != 0 && value != "")
     {
-        throw InvalidInstruction(line);
+        throw InvalidDeclaration(name);
     }
 
     int num_of_parameters = -1;
@@ -153,6 +156,8 @@ void SymbolTable::insert(string line, string type, int firstConst, int secondCon
             throw InvalidInstruction(line);
     }
 
+    if (size == 0) throw Overflow(line);
+    
     Symbol *symbol = new Symbol(name, num_of_parameters, scope);
     if (type == "LINEAR")
     {
@@ -169,7 +174,7 @@ void SymbolTable::insert(string line, string type, int firstConst, int secondCon
             {
                 if (symbolTable[index] != NULL)
                     if (symbolTable[index]->identifier == symbol->identifier && symbolTable[index]->scope == symbol->scope)
-                        throw Redeclared(line);
+                        throw Redeclared(name);
                 index += firstConst;
                 numsteps++;
                 index = index % size;
@@ -195,7 +200,7 @@ void SymbolTable::insert(string line, string type, int firstConst, int secondCon
             {
                 if (symbolTable[index] != NULL)
                     if (symbolTable[index]->identifier == symbol->identifier && symbolTable[index]->scope == symbol->scope)
-                        throw Redeclared(line);
+                        throw Redeclared(name);
                 index += firstConst * i + secondConst * i * i;
                 numsteps++;
                 ;
@@ -209,7 +214,7 @@ void SymbolTable::insert(string line, string type, int firstConst, int secondCon
     else if (type == "DOUBLE")
     {
         int index = hashFunction(symbol->key, size);
-        // cout << symbol->key << endl;
+        // cout << symbol->key << " "  << index << endl;
         if (this->count == size - 1)
         {
             throw Overflow(line);
@@ -220,7 +225,7 @@ void SymbolTable::insert(string line, string type, int firstConst, int secondCon
             {
                 if (symbolTable[index] != NULL)
                     if (symbolTable[index]->identifier == symbol->identifier && symbolTable[index]->scope == symbol->scope)
-                        throw Redeclared(line);
+                        throw Redeclared(name);
                 index += firstConst * subHashFunction(symbol->key, size);
                 numsteps++;
                 // cout << firstConst << endl;
@@ -228,6 +233,7 @@ void SymbolTable::insert(string line, string type, int firstConst, int secondCon
             }
             symbolTable[index] = symbol;
             // this->count++;
+            // cout << symbol->key << endl;
         }
     }
     cout << numsteps << endl;
@@ -245,14 +251,17 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
     string valToAssign = word[2];
     if (!validID(varToAssign))
         throw InvalidInstruction(line);
-
+    if (valToAssign == "void" || valToAssign == "number" || valToAssign == "string")
+        throw InvalidInstruction(line);
+  
     int numsteps = 0;
     if (type == "LINEAR")
     {
         bool isDeclared;
+        int index = 0;
         for (int scope = currentScope; scope >= 0; scope--)
         {
-            int index = hashFunction(idToKey(varToAssign, scope), size);
+            index = hashFunction(idToKey(varToAssign, scope), size);
             isDeclared = false;
             // cout << idToKey(varToAssign, scope) << endl;
             while (symbolTable[index] != NULL)
@@ -267,204 +276,206 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                 numsteps++;
                 index = index % size;
             }
-            if (!isDeclared)
-                continue;
-            // cout << "Here" << endl;
+            if (isDeclared)
+                break;
+        }
 
-            if (symbolTable[index]->type == "" && isNum(valToAssign))
+        if (isDeclared && symbolTable[index]->type == "" && isNum(valToAssign))
+        {
+            // ASSIGN <ID> <number value>
+            symbolTable[index]->type = "number";
+        }
+        else if (isDeclared && symbolTable[index]->type == "" && isString(valToAssign))
+        {
+            // ASSIGN <ID> <string value>
+            symbolTable[index]->type = "string";
+        }
+        else if (validID(valToAssign))
+        {
+            // ASSIGN <ID> <ID>
+            bool valDeclared = false;
+            int index_val = 0;
+            for (int scope_val = currentScope; scope_val >= 0; scope_val--)
             {
-                // ASSIGN <ID> <number value>
-                symbolTable[index]->type = "number";
-            }
-            else if (symbolTable[index]->type == "" && isString(valToAssign))
-            {
-                // ASSIGN <ID> <string value>
-                symbolTable[index]->type = "string";
-            }
-            else if (validID(valToAssign))
-            {
-                // ASSIGN <ID> <ID>
-                bool valDeclared;
-                for (int scope_val = currentScope; scope_val >= 0; scope_val--)
+                valDeclared = false;
+                index_val = hashFunction(idToKey(valToAssign, scope_val), size);
+                while (symbolTable[index_val] != NULL)
                 {
-                    valDeclared = false;
-                    int index_val = hashFunction(idToKey(valToAssign, scope_val), size);
-                    while (symbolTable[index_val] != NULL)
+                    if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valToAssign)
                     {
-                        if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valToAssign)
-                        {
-                            valDeclared = true;
-                            break;
-                        }
-                        index_val += firstConst;
-                        numsteps++;
-                        index_val = index_val % size;
+                        valDeclared = true;
+                        break;
                     }
-                    if (!valDeclared)
-                        continue;
-                    if (symbolTable[index_val]->type == "")
-                        throw TypeCannotBeInferred(line);
-                    else if (symbolTable[index_val]->type != "" && symbolTable[index]->type != "")
-                    {
-                        if (symbolTable[index_val]->type != symbolTable[index]->type)
-                            throw TypeMismatch(line);
-                    }
-                    else
-                    {
-                        symbolTable[index]->type = symbolTable[index_val]->type;
-                    }
-                    if (valDeclared) break;
+                    index_val += firstConst;
+                    numsteps++;
+                    index_val = index_val % size;
                 }
-                if (!valDeclared) throw Undeclared(valToAssign);
+                if (valDeclared)
+                    break;
             }
-            else if (valToAssign.find('(') && valToAssign.find(')'))
+            // cout << valDeclared << endl;
+            if (isDeclared && valDeclared)
             {
-                // ASSIGN <ID> <Function>
-                // A function's type has not been defined, so that varID had to have type.
-
-                size_t pos = valToAssign.find('(');
-                string valName = valToAssign.substr(0, pos);
-                int index_val;
-
-                // First, check valID and varID are declared?
-                bool valDeclared;
-                for (int val_scope = currentScope; val_scope >= 0; val_scope--)
+                if (symbolTable[index_val]->numOfParameters != -1)
+                    throw InvalidInstruction(line);
+                if (symbolTable[index_val]->type == "" && symbolTable[index]->type != "")
+                    throw TypeMismatch(line); //
+                else if (symbolTable[index_val]->type != "" && symbolTable[index]->type != "")
                 {
-                    valDeclared = false;
-                    index_val = hashFunction(idToKey(valName, scope), size);
-                    while (symbolTable[index_val] != NULL)
+                    if (symbolTable[index_val]->type != symbolTable[index]->type)
+                        throw TypeMismatch(line);
+                }
+                else if (symbolTable[index]->numOfParameters != -1)
+                    throw TypeMismatch(line);
+                else if (symbolTable[index_val]->type == "" && symbolTable[index]->type == "")
+                    throw TypeCannotBeInferred(line);
+                else
+                {
+                    symbolTable[index]->type = symbolTable[index_val]->type;
+                }
+            }
+
+            if (!valDeclared)
+                throw Undeclared(valToAssign);
+        }
+        else if (valToAssign.find('(') && valToAssign.find(')'))
+        {
+            // ASSIGN <ID> <Function>
+            // A function's type has not been defined, so that varID had to have type.
+
+            size_t pos = valToAssign.find('(');
+            string valName = valToAssign.substr(0, pos);
+            // cout << valName << endl;
+            int index_val = 0;
+
+            // First, check valID and varID are declared?
+            bool valDeclared = false;
+            for (int val_scope = currentScope; val_scope >= 0; val_scope--)
+            {
+                valDeclared = false;
+                index_val = hashFunction(idToKey(valName, val_scope), size);
+                while (symbolTable[index_val] != NULL)
+                {
+                    if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valName)
                     {
-                        if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valName)
+                        valDeclared = true;
+                        break;
+                    }
+                    index_val += firstConst;
+                    numsteps++;
+                    index_val = index_val % size;
+                }
+                if (valDeclared)
+                    break;
+            }
+
+            // cout << "Here\n";
+            if (!valDeclared)
+                throw Undeclared(valName);
+
+            string ListParam = valToAssign.substr(pos + 1, valToAssign.length() - pos - 2); // sum(5,x) -> 5,x
+            size_t p = string::npos;
+            int countParam = symbolTable[index_val]->numOfParameters;
+            // cout << countParam << endl;
+            while ((p = ListParam.find(',')) != string::npos)
+            {
+                string param = ListParam.substr(0, p);
+                if (param != "")
+                    countParam--;
+                else
+                    throw TypeMismatch(line);
+                if (validID(param))
+                {
+                    int index_param = 0;
+                    bool paramDeclared = false;
+                    for (int param_scope = currentScope; param_scope >= 0; param_scope--)
+                    {
+                        paramDeclared = false;
+                        index_param = hashFunction(idToKey(param, param_scope), size);
+                        while (symbolTable[index_param] != NULL)
                         {
-                            valDeclared = true;
+                            if (symbolTable[index_param] != NULL && symbolTable[index_param]->identifier == param)
+                            {
+                                paramDeclared = true;
+                                break;
+                            }
+                            index_param += firstConst;
+                            numsteps++;
+                            index_param = index_param % size;
+                        }
+                        if (paramDeclared)
+                            break;
+                    }
+                    if (!paramDeclared)
+                        throw Undeclared(param);
+                    if (symbolTable[index_param]->numOfParameters != -1)
+                        throw TypeMismatch(line);
+                    if (symbolTable[index_param]->type == "")
+                        throw TypeCannotBeInferred(line);
+                }
+                ListParam.erase(0, p + 1);
+            }
+            if (countParam != 1)
+                throw TypeMismatch(line);
+            if (!isNum(ListParam) && !isString(ListParam) && !validID(ListParam))
+                throw InvalidInstruction(line);
+            if (validID(ListParam))
+            {
+                bool ListParamDeclared = false;
+                int index_ListParam = 0;
+                for (int ListParam_scope = currentScope; ListParam_scope >= 0; ListParam_scope--)
+                {
+                    index_ListParam = hashFunction(idToKey(ListParam, ListParam_scope), size);
+                    ListParamDeclared = false;
+                    while (symbolTable[index_ListParam] != NULL)
+                    {
+                        if (symbolTable[index_ListParam] != NULL && symbolTable[index_ListParam]->identifier == ListParam)
+                        {
+                            ListParamDeclared = true;
                             break;
                         }
-                        index_val += firstConst;
+                        index_ListParam += firstConst;
                         numsteps++;
-                        index_val = index_val % size;
+                        index_ListParam = index_ListParam % size;
                     }
-                    if (valDeclared) 
+                    if (ListParamDeclared)
                         break;
                 }
 
-                // bool varDeclared;
-                // for (int var_scope = currentScope; var_scope >= 0; var_scope--)
-                // {
-                //     index_var = hashFunction(idToKey(varToAssign, var_scope), size);
-                //     varDeclared = false;
-
-                //     while (symbolTable[index_var] != NULL)
-                //     {
-                //         if (symbolTable[index_var] != NULL && symbolTable[index_var]->identifier == varToAssign)
-                //         {
-                //             varDeclared = true;
-                //             break;
-                //         }
-                //         index_var += firstConst;
-                //         numsteps++;
-                //         index_var = index_var % size;
-                //     }
-                //     if (varDeclared)
-                //         break;
-                // }
-                if (!valDeclared)
-                    throw Undeclared(valName);
-
-                // If varID's type has not been defined
-                // if (varDeclared && symbolTable[index_var]->type == "")
-                //     throw TypeCannotBeInferred(line);
-
-                string listParam = valToAssign.substr(pos + 1, valToAssign.length() - pos - 2); // sum(5,x) -> 5,x
-                size_t p = string::npos;
-                int countParam = symbolTable[index_val]->numOfParameters;
-                // cout << countParam << endl;
-                while ((p = listParam.find(',')) != string::npos)
-                {
-                    string param = listParam.substr(0, p);
-                    if (param != "")
-                        countParam--;
-                    else
-                        throw TypeMismatch(line);
-                    if (validID(param))
-                    {
-                        int index_param = 0;
-                        bool paramDeclared;
-                        for (int param_scope = currentScope; param_scope >= 0; param_scope--)
-                        {
-                            paramDeclared = false;
-                            index_param = hashFunction(idToKey(param, param_scope), size);
-                            while (symbolTable[index_param] != NULL)
-                            {
-                                if (symbolTable[index_param] != NULL && symbolTable[index_param]->identifier == param)
-                                {
-                                    paramDeclared = true;
-                                    break;
-                                }
-                                index_param += firstConst;
-                                numsteps++;
-                                index_param = index_param % size;
-                            }
-                            if (paramDeclared)
-                                break;
-                        }
-                        if (!paramDeclared)
-                            throw Undeclared(param);
-                        if (symbolTable[index_param]->numOfParameters != -1)
-                            throw TypeMismatch(line);
-                        if (symbolTable[index_param]->type == "")
-                            throw TypeCannotBeInferred(line);
-                    }
-                    listParam.erase(0, p + 1);
-                }
-                if (!isNum(listParam) && !isString(listParam) && !validID(listParam))
-                    throw InvalidInstruction(line);
-                if (validID(listParam))
-                {
-                    for (int listParam_scope = currentScope; listParam_scope >= 0; listParam_scope--)
-                    {
-                        int index_listParam = hashFunction(idToKey(listParam, listParam_scope), size);
-                        bool listParamDeclared = false;
-                        while (symbolTable[index_listParam] != NULL)
-                        {
-                            if (symbolTable[index_listParam] != NULL && symbolTable[index_listParam]->identifier == listParam)
-                            {
-                                listParamDeclared = true;
-                                break;
-                            }
-                            index_listParam += firstConst;
-                            numsteps++;
-                            index_listParam = index_listParam % size;
-                        }
-                        if (listParamDeclared)
-                            break;
-                        if (!listParamDeclared)
-                            throw Undeclared(listParam);
-                        if (symbolTable[index_listParam]->numOfParameters != -1)
-                            throw TypeMismatch(line);
-                        if (symbolTable[index_listParam]->type == "")
-                            throw TypeCannotBeInferred(line);
-                    }
-                }
-                if (countParam != 1)
+                if (!ListParamDeclared)
+                    throw Undeclared(ListParam);
+                if (symbolTable[index_ListParam]->numOfParameters != -1)
                     throw TypeMismatch(line);
-                if (isDeclared && symbolTable[index]->type == "")
+                if (symbolTable[index_ListParam]->type == "")
                     throw TypeCannotBeInferred(line);
-
-                symbolTable[index_val]->type = symbolTable[index]->type;
             }
-            if (isDeclared) break;
+            if (countParam != 1)
+                throw TypeMismatch(line);
+
+            if (isDeclared)
+            {
+                if (symbolTable[index]->type == "" && symbolTable[index]->numOfParameters == -1)
+                    throw TypeCannotBeInferred(line);
+                else if (symbolTable[index]->numOfParameters != -1)
+                    throw TypeMismatch(line);
+            }
+            // cout << "Here is the: " << symbolTable[index]->numOfParameters << endl;
+            if (isDeclared && valDeclared)
+                symbolTable[index_val]->type = symbolTable[index]->type;
         }
-        
-        if (!isDeclared) throw Undeclared(varToAssign);
-        
+
+        if (!isDeclared)
+            throw Undeclared(varToAssign);
+
         cout << numsteps << endl;
     }
     else if (type == "QUADRATIC")
     {
         bool isDeclared;
+        int index = 0;
         for (int var_scope = currentScope; var_scope >= 0; var_scope--)
         {
-            int index = hashFunction(idToKey(varToAssign, var_scope), size);
+            index = hashFunction(idToKey(varToAssign, var_scope), size);
             isDeclared = false;
 
             int i = 1;
@@ -480,209 +491,213 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                 index = index % size;
                 i++;
             }
-            if (!isDeclared)
-                continue;
-
-            if (symbolTable[index]->type == "" && isNum(valToAssign))
-            {
-                // ASSIGN <ID> <number value>
-                symbolTable[index]->type = "number";
-            }
-            else if (symbolTable[index]->type == "" && isString(valToAssign))
-            {
-                // ASSIGN <ID> <string value>
-                symbolTable[index]->type = "string";
-            }
-            else if (validID(valToAssign))
-            {
-                // ASSIGN <ID> <ID>
-                bool valDeclared;
-                for (int val_scope = currentScope; val_scope >= 0; val_scope--){
-                    int index_val = hashFunction(idToKey(valToAssign, val_scope), size);
-                    int i_val = 1;
-                    valDeclared = false;
-                    while (symbolTable[index_val] != NULL)
-                    {
-                        if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valToAssign)
-                        {
-                            valDeclared = true;
-                            break;
-                        }
-                        index_val += firstConst * i_val + secondConst * i_val * i_val;
-                        numsteps++;
-                        index_val = index_val % size;
-                        i_val++;
-                    }
-                    if (!valDeclared)
-                        continue;
-                    if (symbolTable[index_val]->type == "")
-                        throw TypeCannotBeInferred(line);
-                    else if (symbolTable[index_val]->type != "" && symbolTable[index]->type != "")
-                    {
-                        if (symbolTable[index_val]->type != symbolTable[index]->type)
-                            throw TypeMismatch(line);
-                    }
-                    else
-                    {
-                        symbolTable[index]->type = symbolTable[index_val]->type;
-                    }
-                    if (valDeclared) break;
-                }
-                if (!valDeclared)
-                    throw Undeclared(valToAssign);
-            }
-            else if (valToAssign.find('(') && valToAssign.find(')'))
-            {
-                // ASSIGN <ID> <Function>
-                // A function's type has not been defined, so that varID had to have type.
-
-                size_t pos = valToAssign.find('(');
-                string valName = valToAssign.substr(0, pos);
-                int index_val = 0; // index_var = 0;
-                // First, check valID and varID are declared?
-                bool valDeclared;
-                for (int val_scope = currentScope; val_scope >= 0; val_scope--){
-                    int i_val = 1;
-                    valDeclared = false;
-                    index_val = hashFunction(idToKey(valName, val_scope), size);
-                    while (symbolTable[index_val] != NULL)
-                    {
-                        if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valName)
-                        {
-                            valDeclared = true;
-                            break;
-                        }
-                        index_val += firstConst * i_val + secondConst * i_val * i_val;
-                        numsteps++;
-                        index_val = index_val % size;
-                        i_val++;
-                    }
-                    if (valDeclared) break;
-                }
-
-                // bool varDeclared;
-                // for (int var_scope = currentScope; var_scope >= 0; var_scope--){
-                //     int i_var = 1;
-                //     varDeclared = false;
-                //     index_var = hashFunction(idToKey(varToAssign, var_scope), size);
-                //     while (symbolTable[index_var] != NULL)
-                //     {
-                //         if (symbolTable[index_var] != NULL && symbolTable[index_var]->identifier == varToAssign)
-                //         {
-                //             varDeclared = true;
-                //             break;
-                //         }
-                //         index_var += firstConst * i_var + secondConst * i_var * i_var;
-                //         numsteps++;
-                //         index_var = index_var % size;
-                //         i_var++;
-                //     }
-                //     if (varDeclared) break;
-                // }
-
-                if (!valDeclared)
-                    throw Undeclared(valName);
-
-                // If varID's type has not been defined
-                // if (varDeclared && symbolTable[index_var]->type == "")
-                //     throw TypeCannotBeInferred(line);
-
-                string listParam = valToAssign.substr(pos + 1, valToAssign.length() - pos - 2); // sum(5,x) -> 5,x
-                size_t p = string::npos;
-                int countParam = symbolTable[index_val]->numOfParameters;
-                // cout << countParam << endl;
-                while ((p = listParam.find(',')) != string::npos)
-                {
-                    string param = listParam.substr(0, p);
-                    if (param != "")
-                        countParam--;
-                    else
-                        throw TypeMismatch(line);
-                    if (validID(param))
-                    {
-                        bool paramDeclared;
-                        int index_param = 0;
-                        for (int param_scope = currentScope; param_scope >= 0; param_scope--){
-                            index_param = hashFunction(idToKey(param, param_scope), size);
-                            paramDeclared = false;
-                            int i_param = 1;
-                            while (symbolTable[index_param] != NULL)
-                            {
-                                if (symbolTable[index_param] != NULL && symbolTable[index_param]->identifier == param)
-                                {
-                                    paramDeclared = true;
-                                    break;
-                                }
-                                index_param += firstConst * i_param + secondConst * i_param * i_param;
-                                numsteps++;
-                                index_param = index_param % size;
-                                i_param++;
-                            }
-                            if (paramDeclared) break;
-                        }
-                        if (!paramDeclared)
-                            throw Undeclared(param);
-                        if (symbolTable[index_param]->numOfParameters != -1)
-                            throw TypeMismatch(line);
-                        if (symbolTable[index_param]->type == "")
-                            throw TypeCannotBeInferred(line);
-                    }
-                    listParam.erase(0, p + 1);
-                }
-                if (!isNum(listParam) && !isString(listParam) && !validID(listParam))
-                    throw InvalidInstruction(line);
-                if (validID(listParam))
-                {
-                    for (int listParam_scope = currentScope; listParam_scope >= 0; listParam_scope--)
-                    {
-                        int index_listParam = hashFunction(idToKey(listParam, listParam_scope), size);
-                        bool listParamDeclared = false;
-                        int i_list = 1;
-                        while (symbolTable[index_listParam] != NULL)
-                        {
-                            if (symbolTable[index_listParam] != NULL && symbolTable[index_listParam]->identifier == listParam)
-                            {
-                                listParamDeclared = true;
-                                break;
-                            }
-                            index_listParam += firstConst * i_list + secondConst * i_list * i_list;
-                            numsteps++;
-                            index_listParam = index_listParam % size;
-                            i_list++;
-                        }
-                        if (listParamDeclared)
-                            break;
-                        if (!listParamDeclared)
-                            throw Undeclared(listParam);
-                        if (symbolTable[index_listParam]->numOfParameters != -1)
-                            throw TypeMismatch(line);
-                        if (symbolTable[index_listParam]->type == "")
-                            throw TypeCannotBeInferred(line);
-                    }
-                }
-                if (countParam != 1)
-                    throw TypeMismatch(line);
-                if (isDeclared && symbolTable[index]->type == "")
-                    throw TypeCannotBeInferred(line);
-
-                symbolTable[index_val]->type = symbolTable[index]->type;
-            }
             if (isDeclared) break;
         }
-        
+
+        // cout << symbolTable[index]->identifier << endl;
+        // cout << varToAssign << ' ' << valToAssign << endl;
+        if (isDeclared && symbolTable[index]->type == "" && isNum(valToAssign))
+        {
+            // ASSIGN <ID> <number value>
+            symbolTable[index]->type = "number";
+        }
+        else if (isDeclared && symbolTable[index]->type == "" && isString(valToAssign))
+        {
+            // ASSIGN <ID> <string value>
+            symbolTable[index]->type = "string";
+        }
+        else if (validID(valToAssign))
+        {
+            // ASSIGN <ID> <ID>
+            // cout << valToAssign << endl;
+            bool valDeclared = false;
+            int index_val = 0;
+            for (int val_scope = currentScope; val_scope >= 0; val_scope--)
+            {
+                index_val = hashFunction(idToKey(valToAssign, val_scope), size);
+                valDeclared = false;
+                int i_val = 1;
+                while (symbolTable[index_val] != NULL)
+                {
+                    if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valToAssign)
+                    {
+                        valDeclared = true;
+                        break;
+                    }
+                    index_val += firstConst * i_val + secondConst * i_val * i_val;
+                    numsteps++;
+                    index_val = index_val % size;
+                    i_val++;
+                }
+                if (valDeclared)
+                    break;
+            }
+            // cout << valDeclared << endl;
+            if (isDeclared && valDeclared)
+            {
+                if (symbolTable[index_val]->numOfParameters != -1)
+                    throw InvalidInstruction(line);
+                
+                if (symbolTable[index_val]->type == "" && symbolTable[index]->type != "")
+                    throw TypeMismatch(line); //
+                else if (symbolTable[index_val]->type != "" && symbolTable[index]->type != "")
+                {
+                    if (symbolTable[index_val]->type != symbolTable[index]->type)
+                        throw TypeMismatch(line);
+                }
+                else if (symbolTable[index_val]->type == "" && symbolTable[index]->type == "")
+                    throw TypeCannotBeInferred(line);
+                else if (symbolTable[index]->numOfParameters != -1)
+                    throw TypeMismatch(line);
+                else
+                {
+                    symbolTable[index]->type = symbolTable[index_val]->type;
+                }
+            }
+
+            if (!valDeclared)
+                throw Undeclared(valToAssign);
+        }
+        else if (valToAssign.find('(') && valToAssign.find(')'))
+        {
+            // ASSIGN <ID> <Function>
+            // A function's type has not been defined, so that varID had to have type.
+
+            size_t pos = valToAssign.find('(');
+            string valName = valToAssign.substr(0, pos);
+            int index_val = 0; // index_var = 0;
+            // First, check valID and varID are declared?
+            bool valDeclared = 0;
+            for (int val_scope = currentScope; val_scope >= 0; val_scope--)
+            {
+                int i_val = 1;
+                valDeclared = false;
+                index_val = hashFunction(idToKey(valName, val_scope), size);
+                while (symbolTable[index_val] != NULL)
+                {
+                    if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valName)
+                    {
+                        valDeclared = true;
+                        break;
+                    }
+                    index_val += firstConst * i_val + secondConst * i_val * i_val;
+                    numsteps++;
+                    index_val = index_val % size;
+                    i_val++;
+                }
+                if (valDeclared)
+                    break;
+            }
+
+            if (!valDeclared)
+                throw Undeclared(valName);
+
+            string ListParam = valToAssign.substr(pos + 1, valToAssign.length() - pos - 2); // sum(5,x) -> 5,x
+            size_t p = string::npos;
+            int countParam = symbolTable[index_val]->numOfParameters;
+            // cout << countParam << endl;
+            while ((p = ListParam.find(',')) != string::npos)
+            {
+                string param = ListParam.substr(0, p);
+                if (param != "")
+                    countParam--;
+                else
+                    throw TypeMismatch(line);
+                if (validID(param))
+                {
+                    // cout << param << endl;
+                    bool paramDeclared = false;
+                    int index_param = 0;
+                    for (int param_scope = currentScope; param_scope >= 0; param_scope--)
+                    {
+                        index_param = hashFunction(idToKey(param, param_scope), size);
+                        paramDeclared = false;
+                        int i_param = 1;
+                        while (symbolTable[index_param] != NULL)
+                        {
+                            if (symbolTable[index_param] != NULL && symbolTable[index_param]->identifier == param)
+                            {
+                                paramDeclared = true;
+                                break;
+                            }
+                            index_param += firstConst * i_param + secondConst * i_param * i_param;
+                            numsteps++;
+                            index_param = index_param % size;
+                            i_param++;
+                        }
+                        if (paramDeclared)
+                            break;
+                    }
+                    if (!paramDeclared)
+                        throw Undeclared(param);
+                    if (symbolTable[index_param]->numOfParameters != -1)
+                        throw TypeMismatch(line);
+                    if (symbolTable[index_param]->type == "")
+                        throw TypeCannotBeInferred(line);
+                }
+                ListParam.erase(0, p + 1);
+            }
+            if (countParam != 1)
+                throw TypeMismatch(line);
+            if (!isNum(ListParam) && !isString(ListParam) && !validID(ListParam))
+                throw InvalidInstruction(line);
+            if (validID(ListParam))
+            {
+                int index_ListParam = 0;
+                bool ListParamDeclared = false;
+                for (int ListParam_scope = currentScope; ListParam_scope >= 0; ListParam_scope--)
+                {
+                    index_ListParam = hashFunction(idToKey(ListParam, ListParam_scope), size);
+                    ListParamDeclared = false;
+                    int i_List = 1;
+                    while (symbolTable[index_ListParam] != NULL)
+                    {
+                        if (symbolTable[index_ListParam] != NULL && symbolTable[index_ListParam]->identifier == ListParam)
+                        {
+                            ListParamDeclared = true;
+                            break;
+                        }
+                        index_ListParam += firstConst * i_List + secondConst * i_List * i_List;
+                        numsteps++;
+                        index_ListParam = index_ListParam % size;
+                        i_List++;
+                    }
+                    if (ListParamDeclared)
+                        break;
+                }
+
+                if (!ListParamDeclared)
+                    throw Undeclared(ListParam);
+                if (symbolTable[index_ListParam]->numOfParameters != -1)
+                    throw TypeMismatch(line);
+                if (symbolTable[index_ListParam]->type == "")
+                    throw TypeCannotBeInferred(line);
+            }
+            if (countParam != 1)
+                throw TypeMismatch(line);
+            if (isDeclared && symbolTable[index]->type == "" && symbolTable[index]->numOfParameters == -1)
+                throw TypeCannotBeInferred(line);
+            if (isDeclared && symbolTable[index]->numOfParameters != -1)
+                throw TypeMismatch(line);
+
+            if (isDeclared && valDeclared)
+                symbolTable[index_val]->type = symbolTable[index]->type;
+        }
+
         if (!isDeclared) throw Undeclared(varToAssign);
-        
+
         cout << numsteps << endl;
     }
     else if (type == "DOUBLE")
     {
-        bool isDeclared;
+        bool isDeclared = false;
+        int index = 0;
         // cout << "Current scope: " << currentScope << endl;
         // cout << "Var: " << varToAssign << endl;
         // cout << "Val: " << valToAssign << endl;
         for (int var_scope = currentScope; var_scope >= 0; var_scope--)
         {
-            int index = hashFunction(idToKey(varToAssign, var_scope), size);
+            index = hashFunction(idToKey(varToAssign, var_scope), size);
             isDeclared = false;
             while (symbolTable[index] != NULL)
             {
@@ -695,199 +710,197 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                 numsteps++;
                 index = index % size;
             }
-            if (!isDeclared)
-                continue;
-            // cout << boolalpha << isDeclared << endl;
-            if (symbolTable[index]->type == "" && isNum(valToAssign))
-            {
-                // ASSIGN <ID> <number value>
-                symbolTable[index]->type = "number";
-            }
-            else if (symbolTable[index]->type == "" && isString(valToAssign))
-            {
-                // ASSIGN <ID> <string value>
-                symbolTable[index]->type = "string";
-            }
-            else if (validID(valToAssign))
-            {
-                // ASSIGN <ID> <ID>
-                // cout << "Current scope: " << currentScope << endl;
-                bool valDeclared;
-                for (int val_scope = currentScope; val_scope >= 0; val_scope--)
-                {
-                    int index_val = hashFunction(idToKey(valToAssign, val_scope), size);
-                    valDeclared = false;
-                    while (symbolTable[index_val] != NULL)
-                    {
-                        if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valToAssign)
-                        {
-                            valDeclared = true;
-                            break;
-                        }
-                        index_val += firstConst * subHashFunction(idToKey(valToAssign, val_scope), size);
-                        numsteps++;
-                        index_val = index_val % size;
-                    }
-                    if (!valDeclared)
-                        continue;
-                    if (symbolTable[index_val]->type == "")
-                        throw TypeCannotBeInferred(line);
-                    else if (symbolTable[index_val]->type != "" && symbolTable[index]->type != "")
-                    {
-                        if (symbolTable[index_val]->type != symbolTable[index]->type)
-                            throw TypeMismatch(line);
-                    }
-                    else
-                    {
-                        symbolTable[index]->type = symbolTable[index_val]->type;
-                    }
-                    if (valDeclared) break;
-                }
-                if (!valDeclared)
-                    throw Undeclared(valToAssign);
-            }
-            else if (valToAssign.find('(') && valToAssign.find(')'))
-            {
-                // ASSIGN <ID> <Function>
-                // A function's type has not been defined, so that varID had to have type.
-                // cout << "Here\n";
-                size_t pos = valToAssign.find('(');
-                string valName = valToAssign.substr(0, pos);
-                
-                // First, check valID and varID are declared?
-                int index_val = 0;
-                bool valDeclared;
-                for (int val_scope = currentScope; val_scope >= 0; val_scope--)
-                {
-                    index_val = hashFunction(idToKey(valName, val_scope), size);
-                    valDeclared = false;
-                    while (symbolTable[index_val] != NULL)
-                    {
-                        if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valName)
-                        {
-                            valDeclared = true;
-                            break;
-                        }
-                        index_val += firstConst * subHashFunction(idToKey(valName, val_scope), size);
-                        numsteps++;
-                        index_val = index_val % size;
-                    }
-                    if (valDeclared)
-                        break;
-                }
-                // cout << "OKE\n";
-                // int index_var = 0;
-                // bool varDeclared;
-                // for (int var_scope = currentScope; var_scope >= 0; var_scope--)
-                // {
-                //     index_var = hashFunction(idToKey(varToAssign, var_scope), size);
-                //     varDeclared = false;
-                //     while (symbolTable[index_var] != NULL)
-                //     {
-                //         if (symbolTable[index_var] != NULL && symbolTable[index_var]->identifier == varToAssign)
-                //         {
-                //             varDeclared = true;
-                //             break;
-                //         }
-                //         index_var += firstConst * subHashFunction(idToKey(varToAssign, var_scope), size);
-                //         numsteps++;
-                //         index_var = index_var % size;
-                //     }
-                //     if (varDeclared)
-                //         break;
-                // }
-                // cout << "OKE\n";
-                if (!valDeclared)
-                    throw Undeclared(valName);
-
-                // If varID's type has not been defined
-                // if (varDeclared && symbolTable[index_var]->type == "")
-                //     throw TypeCannotBeInferred(line);
-
-                string listParam = valToAssign.substr(pos + 1, valToAssign.length() - pos - 2); // sum(5,x) -> 5,x
-                size_t p = string::npos;
-                int countParam = symbolTable[index_val]->numOfParameters;
-                // cout << countParam << endl;
-                while ((p = listParam.find(',')) != string::npos)
-                {
-                    string param = listParam.substr(0, p);
-                    if (param != "")
-                        countParam--;
-                    else
-                        throw TypeMismatch(line);
-                    if (validID(param))
-                    {
-                        int index_param = 0;
-                        bool paramDeclared;
-                        for (int param_scope = currentScope; param_scope >= 0; param_scope--)
-                        {
-                            paramDeclared = false;
-                            index_param = hashFunction(idToKey(param, param_scope), size);
-                            while (symbolTable[index_param] != NULL)
-                            {
-                                if (symbolTable[index_param] != NULL && symbolTable[index_param]->identifier == param)
-                                {
-                                    paramDeclared = true;
-                                    break;
-                                }
-                                index_param += firstConst * subHashFunction(idToKey(param, param_scope), size);
-                                numsteps++;
-                                index_param = index_param % size;
-                            }
-                            if (paramDeclared)
-                                break;
-                        }
-                        if (!paramDeclared)
-                            throw Undeclared(param);
-                        if (symbolTable[index_param]->numOfParameters != -1)
-                            throw TypeMismatch(line);
-                        if (symbolTable[index_param]->type == "")
-                            throw TypeCannotBeInferred(line);
-                    }
-                    listParam.erase(0, p + 1);
-                }
-                if (!isNum(listParam) && !isString(listParam) && !validID(listParam))
-                    throw InvalidInstruction(line);
-                if (validID(listParam))
-                {
-                    for (int listParam_scope = currentScope; listParam_scope >= 0; listParam_scope--)
-                    {
-                        int index_listParam = hashFunction(idToKey(listParam, listParam_scope), size);
-                        bool listParamDeclared = false;
-                        while (symbolTable[index_listParam] != NULL)
-                        {
-                            if (symbolTable[index_listParam] != NULL && symbolTable[index_listParam]->identifier == listParam)
-                            {
-                                listParamDeclared = true;
-                                break;
-                            }
-                            index_listParam += firstConst * subHashFunction(idToKey(listParam, listParam_scope), size);
-                            numsteps++;
-                            index_listParam = index_listParam % size;
-                        }
-                        if (listParamDeclared)
-                            break;
-                        if (!listParamDeclared)
-                            throw Undeclared(listParam);
-                        if (symbolTable[index_listParam]->numOfParameters != -1)
-                            throw TypeMismatch(line);
-                        if (symbolTable[index_listParam]->type == "")
-                            throw TypeCannotBeInferred(line);
-                    }
-                }
-                if (countParam != 1)
-                    throw TypeMismatch(line);
-                if (isDeclared && symbolTable[index]->type == "")
-                    throw TypeCannotBeInferred(line);
-
-                symbolTable[index_val]->type = symbolTable[index]->type;
-            }
-            // cout << "Here is the\n";
             if (isDeclared)
                 break;
         }
-        
-        if (!isDeclared) throw Undeclared(varToAssign);
+        // cout << boolalpha << isDeclared << endl;
+        if (isDeclared && symbolTable[index]->type == "" && isNum(valToAssign))
+        {
+            // ASSIGN <ID> <number value>
+            symbolTable[index]->type = "number";
+        }
+        else if (isDeclared && symbolTable[index]->type == "" && isString(valToAssign))
+        {
+            // ASSIGN <ID> <string value>
+            symbolTable[index]->type = "string";
+        }
+        else if (validID(valToAssign))
+        {
+            // ASSIGN <ID> <ID>
+            // cout << "Current scope: " << currentScope << endl;
+
+            bool valDeclared = false;
+            int index_val = 0;
+            for (int val_scope = currentScope; val_scope >= 0; val_scope--)
+            {
+                index_val = hashFunction(idToKey(valToAssign, val_scope), size);
+                valDeclared = false;
+                while (symbolTable[index_val] != NULL)
+                {
+                    if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valToAssign)
+                    {
+                        valDeclared = true;
+                        break;
+                    }
+                    index_val += firstConst * subHashFunction(idToKey(valToAssign, val_scope), size);
+                    numsteps++;
+                    index_val = index_val % size;
+                }
+                if (valDeclared)
+                    break;
+            }
+            if (isDeclared && valDeclared)
+            {
+                if (symbolTable[index_val]->numOfParameters != -1)
+                    throw InvalidInstruction(line);
+                    // cout << "Invalid parameter\n";
+                
+                else if (symbolTable[index_val]->type == "" && symbolTable[index]->type != "")
+                    throw TypeMismatch(line); //
+                else if (symbolTable[index_val]->type != "" && symbolTable[index]->type != "")
+                {
+                    if (symbolTable[index_val]->type != symbolTable[index]->type)
+                        throw TypeMismatch(line);
+                }
+                else if (symbolTable[index]->numOfParameters != -1)
+                    throw TypeMismatch(line);
+                else if (symbolTable[index_val]->type == "" && symbolTable[index]->type == "")
+                    throw TypeCannotBeInferred(line);
+                else
+                {
+                    symbolTable[index]->type = symbolTable[index_val]->type;
+                }
+            }
+
+            if (!valDeclared)
+                throw Undeclared(valToAssign);
+            // cout << boolalpha << valDeclared << endl;
+        }
+        else if (valToAssign.find('(') && valToAssign.find(')'))
+        {
+            // ASSIGN <ID> <Function>
+            // A function's type has not been defined, so that varID had to have type.
+            // cout << "Here\n";
+            size_t pos = valToAssign.find('(');
+            string valName = valToAssign.substr(0, pos);
+
+            // First, check valID and varID are declared?
+            int index_val = 0;
+            bool valDeclared = false;
+            for (int val_scope = currentScope; val_scope >= 0; val_scope--)
+            {
+                index_val = hashFunction(idToKey(valName, val_scope), size);
+                // cout << idToKey(valName, val_scope) << ' ' << index_val << endl;
+                valDeclared = false;
+                while (symbolTable[index_val] != NULL)
+                {
+                    if (symbolTable[index_val] != NULL && symbolTable[index_val]->identifier == valName)
+                    {
+                        valDeclared = true;
+                        break;
+                    }
+                    index_val += firstConst * subHashFunction(idToKey(valName, val_scope), size);
+                    numsteps++;
+                    index_val = index_val % size;
+                }
+                if (valDeclared)
+                    break;
+            }
+
+            // cout << valName << endl;
+            if (!valDeclared)
+                throw Undeclared(valName);
+
+            string ListParam = valToAssign.substr(pos + 1, valToAssign.length() - pos - 2); // sum(5,x) -> 5,x
+            size_t p = string::npos;
+            int countParam = symbolTable[index_val]->numOfParameters;
+            // cout << countParam << endl;
+            while ((p = ListParam.find(',')) != string::npos)
+            {
+                string param = ListParam.substr(0, p);
+                if (param != "")
+                    countParam--;
+                else
+                    throw TypeMismatch(line);
+                if (validID(param))
+                {
+                    int index_param = 0;
+                    bool paramDeclared = false;
+                    for (int param_scope = currentScope; param_scope >= 0; param_scope--)
+                    {
+                        paramDeclared = false;
+                        index_param = hashFunction(idToKey(param, param_scope), size);
+                        while (symbolTable[index_param] != NULL)
+                        {
+                            if (symbolTable[index_param] != NULL && symbolTable[index_param]->identifier == param)
+                            {
+                                paramDeclared = true;
+                                break;
+                            }
+                            index_param += firstConst * subHashFunction(idToKey(param, param_scope), size);
+                            numsteps++;
+                            index_param = index_param % size;
+                        }
+                        if (paramDeclared)
+                            break;
+                    }
+                    if (!paramDeclared)
+                        throw Undeclared(param);
+                    if (symbolTable[index_param]->numOfParameters != -1)
+                        throw TypeMismatch(line);
+                    if (symbolTable[index_param]->type == "")
+                        throw TypeCannotBeInferred(line);
+                }
+                ListParam.erase(0, p + 1);
+            }
+            if (countParam != 1)
+                throw TypeMismatch(line);
+            if (!isNum(ListParam) && !isString(ListParam) && !validID(ListParam))
+                throw InvalidInstruction(line);
+            if (validID(ListParam))
+            {
+                int index_ListParam = 0;
+                bool ListParamDeclared = false;
+                for (int ListParam_scope = currentScope; ListParam_scope >= 0; ListParam_scope--)
+                {
+                    index_ListParam = hashFunction(idToKey(ListParam, ListParam_scope), size);
+                    ListParamDeclared = false;
+                    while (symbolTable[index_ListParam] != NULL)
+                    {
+                        if (symbolTable[index_ListParam] != NULL && symbolTable[index_ListParam]->identifier == ListParam)
+                        {
+                            ListParamDeclared = true;
+                            break;
+                        }
+                        index_ListParam += firstConst * subHashFunction(idToKey(ListParam, ListParam_scope), size);
+                        numsteps++;
+                        index_ListParam = index_ListParam % size;
+                    }
+                    if (ListParamDeclared)
+                        break;
+                }
+
+                if (!ListParamDeclared)
+                    throw Undeclared(ListParam);
+                if (symbolTable[index_ListParam]->numOfParameters != -1)
+                    throw TypeMismatch(line);
+                if (symbolTable[index_ListParam]->type == "")
+                    throw TypeCannotBeInferred(line);
+            }
+
+            if (countParam != 1)
+                throw TypeMismatch(line);
+            if (isDeclared && symbolTable[index]->type == "" && symbolTable[index]->numOfParameters == -1)
+                throw TypeCannotBeInferred(line);
+            if (isDeclared && symbolTable[index]->numOfParameters != -1)
+                throw TypeMismatch(line);
+            if (isDeclared && valDeclared)
+                symbolTable[index_val]->type = symbolTable[index]->type;
+        }
+        // cout << "Here is the\n";
+
+        if (!isDeclared)
+            throw Undeclared(varToAssign);
         cout << numsteps << endl;
     }
 }
@@ -905,7 +918,7 @@ void SymbolTable::call(string line, string type, int firstConst, int secondConst
 
     size_t pos = functionCaller.find('(');
     string functionName = functionCaller.substr(0, pos);
-    string listArg = functionCaller.substr(pos + 1, functionCaller.length() - pos - 2);
+    string ListArg = functionCaller.substr(pos + 1, functionCaller.length() - pos - 2);
     int numsteps = 0;
     if (type == "LINEAR")
     {
@@ -936,12 +949,12 @@ void SymbolTable::call(string line, string type, int firstConst, int secondConst
             scope--;
         }
         if (!isDeclared)
-            throw Undeclared(line);
-
+            throw Undeclared(functionName);
+        
         size_t p = string::npos;
-        while ((p = listArg.find(',')) != string::npos)
+        while ((p = ListArg.find(',')) != string::npos)
         {
-            string arg = listArg.substr(0, p);
+            string arg = ListArg.substr(0, p);
             // cout << p << endl;
 
             if (!isNum(arg) && !isString(arg) && !validID(arg))
@@ -974,24 +987,25 @@ void SymbolTable::call(string line, string type, int firstConst, int secondConst
                     }
                     scope--;
                 }
+                if (!isDeclared) throw Undeclared(arg);
             }
-            listArg.erase(0, p + 1);
+            ListArg.erase(0, p + 1);
         }
         // 'abc',aa -> aa -> check aa
-        if (!isNum(listArg) && !isString(listArg) && !validID(listArg))
+        if (!isNum(ListArg) && !isString(ListArg) && !validID(ListArg))
             throw InvalidInstruction(line);
-        if (validID(listArg))
+        if (validID(ListArg))
         {
             scope = currentScope;
             isDeclared = false;
             while (scope >= 0)
             {
-                int index = hashFunction(idToKey(listArg, scope), size);
+                int index = hashFunction(idToKey(ListArg, scope), size);
                 // cout << idToKey(varToAssign, scope) << endl;
                 while (symbolTable[index] != NULL)
                 {
                     // cout << symbolTable[index]->identifier << " " << varToAssign << endl;
-                    if (symbolTable[index] != NULL && symbolTable[index]->identifier == listArg)
+                    if (symbolTable[index] != NULL && symbolTable[index]->identifier == ListArg)
                     {
                         isDeclared = true;
                         break;
@@ -1008,6 +1022,7 @@ void SymbolTable::call(string line, string type, int firstConst, int secondConst
                 }
                 scope--;
             }
+            if (!isDeclared) throw Undeclared(ListArg);
         }
     }
     else if (type == "QUADRATIC")
@@ -1041,12 +1056,12 @@ void SymbolTable::call(string line, string type, int firstConst, int secondConst
             scope--;
         }
         if (!isDeclared)
-            throw Undeclared(line);
+            throw Undeclared(functionName);
 
         size_t p = string::npos;
-        while ((p = listArg.find(',')) != string::npos)
+        while ((p = ListArg.find(',')) != string::npos)
         {
-            string arg = listArg.substr(0, p);
+            string arg = ListArg.substr(0, p);
             // cout << p << endl;
 
             if (!isNum(arg) && !isString(arg) && !validID(arg))
@@ -1081,25 +1096,26 @@ void SymbolTable::call(string line, string type, int firstConst, int secondConst
                     }
                     scope--;
                 }
+                if (!isDeclared) throw Undeclared(arg);
             }
-            listArg.erase(0, p + 1);
+            ListArg.erase(0, p + 1);
         }
         // 'abc',aa -> aa -> check aa
-        if (!isNum(listArg) && !isString(listArg) && !validID(listArg))
+        if (!isNum(ListArg) && !isString(ListArg) && !validID(ListArg))
             throw InvalidInstruction(line);
-        if (validID(listArg))
+        if (validID(ListArg))
         {
             scope = currentScope;
             isDeclared = false;
             while (scope >= 0)
             {
-                int index = hashFunction(idToKey(listArg, scope), size);
+                int index = hashFunction(idToKey(ListArg, scope), size);
                 int i = 1;
                 // cout << idToKey(varToAssign, scope) << endl;
                 while (symbolTable[index] != NULL)
                 {
                     // cout << symbolTable[index]->identifier << " " << varToAssign << endl;
-                    if (symbolTable[index] != NULL && symbolTable[index]->identifier == listArg)
+                    if (symbolTable[index] != NULL && symbolTable[index]->identifier == ListArg)
                     {
                         isDeclared = true;
                         break;
@@ -1117,6 +1133,7 @@ void SymbolTable::call(string line, string type, int firstConst, int secondConst
                 }
                 scope--;
             }
+            if (!isDeclared) throw Undeclared(ListArg);
         }
     }
     else if (type == "DOUBLE")
@@ -1148,12 +1165,12 @@ void SymbolTable::call(string line, string type, int firstConst, int secondConst
             scope--;
         }
         if (!isDeclared)
-            throw Undeclared(line);
+            throw Undeclared(functionName);
 
         size_t p = string::npos;
-        while ((p = listArg.find(',')) != string::npos)
+        while ((p = ListArg.find(',')) != string::npos)
         {
-            string arg = listArg.substr(0, p);
+            string arg = ListArg.substr(0, p);
             // cout << p << endl;
 
             if (!isNum(arg) && !isString(arg) && !validID(arg))
@@ -1180,30 +1197,32 @@ void SymbolTable::call(string line, string type, int firstConst, int secondConst
                     }
                     if (isDeclared)
                     {
+                        // cout << symbolTable[index]->identifier << endl;
                         if (symbolTable[index]->type == "")
                             throw TypeMismatch(line);
                         break;
                     }
                     scope--;
                 }
+                if (!isDeclared) throw Undeclared(arg);
             }
-            listArg.erase(0, p + 1);
+            ListArg.erase(0, p + 1);
         }
         // 'abc',aa -> aa -> check aa
-        if (!isNum(listArg) && !isString(listArg) && !validID(listArg))
+        if (!isNum(ListArg) && !isString(ListArg) && !validID(ListArg))
             throw InvalidInstruction(line);
-        if (validID(listArg))
+        if (validID(ListArg))
         {
             scope = currentScope;
             isDeclared = false;
             while (scope >= 0)
             {
-                int index = hashFunction(idToKey(listArg, scope), size);
+                int index = hashFunction(idToKey(ListArg, scope), size);
                 // cout << idToKey(varToAssign, scope) << endl;
                 while (symbolTable[index] != NULL)
                 {
                     // cout << symbolTable[index]->identifier << " " << varToAssign << endl;
-                    if (symbolTable[index] != NULL && symbolTable[index]->identifier == listArg)
+                    if (symbolTable[index] != NULL && symbolTable[index]->identifier == ListArg)
                     {
                         isDeclared = true;
                         break;
@@ -1220,6 +1239,7 @@ void SymbolTable::call(string line, string type, int firstConst, int secondConst
                 }
                 scope--;
             }
+            if (!isDeclared) throw Undeclared(ListArg);
         }
     }
     cout << numsteps << endl;
@@ -1351,15 +1371,19 @@ void SymbolTable::run(string filename)
         throw InvalidInstruction(firstLine);
     if (hashType[2] != "")
     {
-        if (isNum(hashType[2]))
+        if (isNum(hashType[2])){
             firstConst = stoi(hashType[2]);
+            if (firstConst < 0) throw InvalidInstruction(firstLine);
+        }
         else
             throw InvalidInstruction(firstLine);
     }
     if (hashType[3] != "")
     {
-        if (isNum(hashType[3]))
+        if (isNum(hashType[3])){
             secondConst = stoi(hashType[3]);
+            if (secondConst < 0) throw InvalidInstruction(firstLine);
+        }
         else
             throw InvalidInstruction(firstLine);
     }
@@ -1368,7 +1392,9 @@ void SymbolTable::run(string filename)
         if (!isNum(hashType[1]))
             throw InvalidInstruction(firstLine);
     }
+
     const int hashSize = stoi(hashType[1]);
+    if (hashSize < 0) throw InvalidInstruction(firstLine);
     initArray(hashSize);
     this->size = hashSize;
     int scope = 0;
