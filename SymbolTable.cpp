@@ -378,7 +378,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                 size_t p = string::npos;
                 int countParam = symbolTable[index_val]->numOfParameters;
                 // cout << countParam << endl;
-                while (p = listParam.find(',') != string::npos)
+                while ((p = listParam.find(',')) != string::npos)
                 {
                     string param = listParam.substr(0, p);
                     if (param != "")
@@ -591,7 +591,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                 size_t p = string::npos;
                 int countParam = symbolTable[index_val]->numOfParameters;
                 // cout << countParam << endl;
-                while (p = listParam.find(',') != string::npos)
+                while ((p = listParam.find(',')) != string::npos)
                 {
                     string param = listParam.substr(0, p);
                     if (param != "")
@@ -808,7 +808,7 @@ void SymbolTable::assign(string line, string type, int firstConst, int secondCon
                 size_t p = string::npos;
                 int countParam = symbolTable[index_val]->numOfParameters;
                 // cout << countParam << endl;
-                while (p = listParam.find(',') != string::npos)
+                while ((p = listParam.find(',')) != string::npos)
                 {
                     string param = listParam.substr(0, p);
                     if (param != "")

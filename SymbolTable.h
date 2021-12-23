@@ -31,7 +31,7 @@ class SymbolTable
     int count;
     int size;
 public:
-    SymbolTable() 
+    SymbolTable()
     {
         this->symbolTable = nullptr;
         this->count = 0;
@@ -44,7 +44,7 @@ public:
             delete symbolTable[i];
             symbolTable[i] = nullptr;
         }
-        delete symbolTable;
+        delete[] symbolTable;
         symbolTable = nullptr;
         this->count = 0;
         this->size = 0;
