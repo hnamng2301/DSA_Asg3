@@ -31,7 +31,7 @@ class SymbolTable
     int count;
     int size;
 public:
-    SymbolTable()
+    SymbolTable() 
     {
         this->symbolTable = nullptr;
         this->count = 0;
@@ -50,16 +50,16 @@ public:
         this->size = 0;
     }
     void initArray(int size);
-    unsigned long hashFunction(unsigned long long int, int);
-    unsigned long subHashFunction(unsigned long long, int);
-    void insert(string, string, int, int, int, int&);
-    void assign(string, string, int, int, int, int);
-    void call(string, string, int, int, int, int);
-    void exitScope(int&, int);
-    void look_up(string, string, int, int, int, int);
-    string result(int);
-    void printTable(string);
-    void run(string filename);
+    unsigned long long hashFunction(unsigned long long int, int);    // main hash function
+    unsigned long long subHashFunction(unsigned long long, int);     // sub hash function for DOUBLE type
+    void insert(string, string, int, int, int, int&);           // INSERT
+    void assign(string, string, int, int, int, int);            // ASSIGN
+    void call(string, string, int, int, int, int);              // CALL
+    void exitScope(int&, int);                                  // END
+    void look_up(string, string, int, int, int, int);           // LOOKUP
+    string result(int);                                         // Take all existing ID in this scope
+    void printTable(string);                                    // PRINT
+    void run(string filename);                                  // main function
 };
 
 bool checkAction(string action);                            // Check first code is INSERT, ASSIGN, ...
@@ -68,6 +68,6 @@ void splitLine(string line, string arg[], int numOfWords);  // Split line / toke
 bool validID(string lineName);                              // Check variable's is valid
 bool isNum(string lineValue);                               // Check value to assign is valid number
 bool isString(string lineValue);                            // Check value to assign is valid string
-unsigned long long idToKey(string identifier, int scope);
+unsigned long long idToKey(string identifier, int scope);   // Change identifier to key
 
 #endif
